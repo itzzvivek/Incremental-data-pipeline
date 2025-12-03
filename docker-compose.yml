@@ -1,0 +1,54 @@
+version: '3.8'
+services:
+  minio:
+    image: minio/minio:RELEASE.2025-01-01T00-00-00Z
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+  app:
+    build: ./app
+    container_name: coinapi_app
+    env_file: .env
+    volumes:
+      - app_data:/app/data
+    depends_on:
+      - minio
+    networks:
+      - pipeline_net
+
+  airflow:
+    image: apache/airflow:2.9.0
+    container_name: airflow
+    restart: always
+    env_file: .env
+    # minimal env required for a playground, for real deployments configure DB and executor
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__CORE__FERNET_KEY: "dummy_fernet_key_please_change"
+      AIRFLOW__CORE__EXECUTOR: "SequentialExecutor"
+
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - app_data:/app/data
+    ports:
+      - "8080:8080"
+    depends_on:
+      - app
+      - minio
+    networks:
+      - pipeline_net
+
+volumes:
+  minio_data:
+  app_data:
+
+networks:
+  pipeline_net:
+  driver: bridge
