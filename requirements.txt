@@ -1,7 +1,5 @@
 requests
 pandas
-pyspark
-deltalake-spark
 deltalake
 boto3
 pyarrow
@@ -9,3 +7,5 @@ fastparquet
 python-dateutil
 python-dotenv
 minio
+pyspark==3.5.1
+delta-spark==3.1.0
