@@ -70,7 +70,6 @@ services:
       AIRFLOW__CORE__FERNET_KEY: "dummy_fernet_key"
       AIRFLOW__CORE__LOAD_EXAMPLES: "False"
       AIRFLOW__CORE__EXECUTOR: "SequentialExecutor"
-      SPARK_MASTER: "spark://spark-master:7077"
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - app_data:/app/data
@@ -81,8 +80,16 @@ services:
       - minio
       - spark-master
       - spark-worker
+    command: >
+      bash -c "
+      airflow db init &&
+      airflow users create --username admin --password admin --firstname admin --lastname admin --role Admin --email admin@example.com || true &&
+      airflow webserver &
+      airflow scheduler
+      "
     networks:
       - pipeline_net
+
 
 volumes:
   minio_data:
