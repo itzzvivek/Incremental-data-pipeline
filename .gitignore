@@ -24,10 +24,12 @@ __pycache__/
 *.pyd
 
 # venv or conda envs
-env/
+.env/
 venv/
 .venv/
 .incremental_env/
+
+
 
 # ---------------------------------------------
 # AIRFLOW RUNTIME FILES

@@ -1,5 +1,5 @@
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 import os
 
@@ -24,7 +24,7 @@ with DAG(
     def trigger_pipeline():
         os.system(f"python {SCRIPT} --once")
 
-    run_task = PythonOperator(\
+    run_task = PythonOperator(
         task_id='run_incremental_pipeline',
         python_callable=trigger_pipeline
     )

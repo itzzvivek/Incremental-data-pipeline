@@ -3,7 +3,7 @@ from minio import Minio
 
 MINIO_HOST = os.getenv("MINIO_HOST", "minio")
 MINIO_PORT = os.getenv("MINIO_PORT", "9000")
-MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minio")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
 
 client = Minio(

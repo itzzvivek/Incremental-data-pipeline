@@ -6,7 +6,7 @@ from .metadata import load_metadata
 
 
 API_KEY = os.getenv("COINAPI_KEY")
-BASE_UR = os.getenv("COINAPI_OHLC_ENDPOINT", "https://rest.coinapi.io/v1/ohlcv/BITSTAMP_SPOT_USD/history")
+BASE_UR = os.getenv("COINAPI_OHLC_ENDPOINT", "https://rest.coinapi.io/v1/ohlcv/BITSTAMP_SPOT_BTC_USD/history")
 
 def fetch_incremental():
     start_time = load_metadata()
@@ -16,7 +16,6 @@ def fetch_incremental():
         "time_start": start_time.isoformat(),
         "limit": 10000,
     }
-
     headers = {"X-CoinAPI-Key": API_KEY}
     r = requests.get(BASE_UR, headers=headers, params=params, timeout=30)
     r.raise_for_status()
