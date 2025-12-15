@@ -2,21 +2,46 @@ import os
 import json
 from datetime import datetime
 
-META_PATH = os.getenv("META_PATH", "/app/data/metadata/last_load.json")
+BASE_DIR = os.getenv("APP_BASE_DIR", os.getcwd())
+META_PATH = os.path.join(BASE_DIR, "data", "metadata", "last_load.json")
 
-DEFAULT = {"last_loaded": "1970-01-01T00:00:00"}
+DEFAULT_TS = "1970-01-01T00:00:00Z"
 
 def load_metadata():
-    if not os.path.exists(META_PATH):
-        os.makedirs(os.path.dirname(META_PATH), exist_ok=True)
+    os.makedirs(os.path.dirname(META_PATH), exist_ok=True)
+
+    # If file does not exist OR is empty → initialize
+    if not os.path.exists(META_PATH) or os.path.getsize(META_PATH) == 0:
         with open(META_PATH, "w") as f:
-            json.dump(DEFAULT, f)
-        return datetime.fromisoformat(DEFAULT["last_loaded"].replace("Z", "+00:00"))
-    
-    with open(META_PATH) as f:
-        obj = json.load(f)
-    return datetime.fromisoformat(obj.get("last_loaded").replace("Z", "+00:00"))
+            json.dump({"last_loaded": DEFAULT_TS}, f)
+
+        return datetime.fromisoformat(
+            DEFAULT_TS.replace("Z", "+00:00")
+        )
+
+    # If file exists, try reading JSON safely
+    try:
+        with open(META_PATH, "r") as f:
+            obj = json.load(f)
+
+        ts = obj.get("last_loaded", DEFAULT_TS)
+        return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+
+    except (json.JSONDecodeError, ValueError):
+        # Corrupted file → reset safely
+        with open(META_PATH, "w") as f:
+            json.dump({"last_loaded": DEFAULT_TS}, f)
+
+        return datetime.fromisoformat(
+            DEFAULT_TS.replace("Z", "+00:00")
+        )
+
 
 def update_metadata(dt):
+    os.makedirs(os.path.dirname(META_PATH), exist_ok=True)
+
     with open(META_PATH, "w") as f:
-        json.dump({"last_loaded": iso}, f)
+        json.dump(
+            {"last_loaded": dt.astimezone(timezone.utc).isoformat()},
+            f
+        )

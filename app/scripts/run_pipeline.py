@@ -2,9 +2,9 @@ import os
 import argparse
 from datetime import datetime
 
-from scripts.fetch_incremental import fetch_incremental
-from scripts.delta_write import write_delta
-from scripts.metadata import update_metadata
+from fetch_incremental import fetch_incremental
+from delta_write import write_delta
+from metadata import update_metadata
 
 
 def run_once():

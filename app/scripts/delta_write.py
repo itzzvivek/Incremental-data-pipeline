@@ -10,7 +10,7 @@ BUCKET_NAME = os.getenv("DELTA_S3_BUCKET", "delta")
     
 TABLE_PATH = f"s3://{BUCKET_NAME}/crypto/bitcoin_ohlcv"
 
-def write_delta(df: pd.DataFrame):
+def write_delta(df: pd):
     if df.empty:
         return
     

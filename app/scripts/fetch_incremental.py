@@ -2,7 +2,7 @@ import os
 import requests
 import pyspark as pd
 from datetime import datetime
-from .metadata import load_metadata
+from metadata import load_metadata
 
 
 API_KEY = os.getenv("COINAPI_KEY")
