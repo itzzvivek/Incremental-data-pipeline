@@ -1,35 +1,46 @@
 import os
 import requests
 import pyspark as pd
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
 from datetime import datetime
+
 from metadata import load_metadata
 
+spark = SparkSession.builder.appName("CoingekoFetchIncremental").getOrCreate()
 
-API_KEY = os.getenv("COINAPI_KEY")
-BASE_UR = os.getenv("COINAPI_OHLC_ENDPOINT", "https://rest.coinapi.io/v1/ohlcv/BITSTAMP_SPOT_BTC_USD/history")
+COINGECKO_URL = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
+
 
 def fetch_incremental():
-    start_time = load_metadata()
-    #CoinAPI expect ISO8601
+    last_loaded = load_metadata()
+
     params = {
-        "period_id": "1HRS",
-        "time_start": start_time.isoformat(),
-        "limit": 10000,
+        "vs_currency": "usd",
+        "days": 1  # last 24 hours
     }
-    headers = {"X-CoinAPI-Key": API_KEY}
-    r = requests.get(BASE_UR, headers=headers, params=params, timeout=30)
+
+    r = requests.get(COINGECKO_URL, params=params, timeout=30)
     r.raise_for_status()
     data = r.json()
 
-    if not data:
-        return pd.DataFrame()
-    
+    prices = data.get("prices", [])
 
-    df = pd.DataFrame(data)
-    # normalize timestamps
-    df['time_period_start'] = pd.to_datetime(df['time_period_start'])
-    df['time_period_end'] = pd.to_datetime(df['time_period_end'])
+    if not prices:
+        return spark.createDataFrame([], schema=None)
 
-    #filter strictly greater than last loaded
-    df = df[df["time_period_start"] > start_time]
+    # Convert to Spark rows
+    rows = [
+        (
+            datetime.utcfromtimestamp(p[0] / 1000),
+            float(p[1])
+        )
+        for p in prices
+        if datetime.utcfromtimestamp(p[0] / 1000) > last_loaded
+    ]
+
+    if not rows:
+        return spark.createDataFrame([], schema=None)
+
+    df = spark.createDataFrame(rows, ["event_time", "price"])
     return df
