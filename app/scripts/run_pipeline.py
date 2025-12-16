@@ -9,7 +9,7 @@ from metadata import update_metadata
 
 def run_once():
     df = fetch_incremental()
-    if df.empty:
+    if df.rdd.isEmpty:
         print("No new data to process.")
         return
     

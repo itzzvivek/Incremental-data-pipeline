@@ -3,7 +3,7 @@ import requests
 import pyspark as pd
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
-from datetime import datetime
+from datetime import datetime, timezone
 
 from metadata import load_metadata
 
@@ -27,16 +27,16 @@ def fetch_incremental():
     prices = data.get("prices", [])
 
     if not prices:
-        return spark.createDataFrame([], schema=None)
+        return spark.createDataFrame([], schema=None)   
 
     # Convert to Spark rows
     rows = [
         (
-            datetime.utcfromtimestamp(p[0] / 1000),
+            datetime.fromtimestamp(p[0] / 1000),
             float(p[1])
         )
         for p in prices
-        if datetime.utcfromtimestamp(p[0] / 1000) > last_loaded
+        if datetime.fromtimestamp(p[0] / 1000, tz=timezone.utc) > last_loaded 
     ]
 
     if not rows:
