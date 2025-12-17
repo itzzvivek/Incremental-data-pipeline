@@ -1,17 +1,26 @@
-import os
-import pyspark as pd
-import boto3
-from deltalake.writer import write_deltalake
+from pyspark.sql import DataFrame
 
 
-# S3 / Minio config via env
-S3_ENDPOINT = os.getenv("S3_ENDPOINT", "http://minio:9000")
-BUCKET_NAME = os.getenv("incremental-data", "delta")
-    
-TABLE_PATH = f"s3://{BUCKET_NAME}/crypto/bitcoin_ohlcv"
+RAW_DATA_PATH = "s3a://delta/raw/bitcoin_prices"
+CLEAN_DATA_PATH = "s3a://delta/clean/bitcoin_prices"
 
-def write_delta(df: pd):
-    if df.empty:
+
+def _is_empty(df: DataFrame) -> bool:
+    return df is None or df.rdd.isEmpty()
+
+def write_raw(df: DataFrame) -> None:
+    if _is_empty(df):
+        print("No raw data to write.")
         return
-    
-    write_deltalake(TABLE_PATH, df, mode="append")
+
+    (df.write.format("delta").mode("append").save(RAW_DATA_PATH))
+    print(f"Raw layer: data written to {RAW_DATA_PATH}.")
+
+def write_clean(df: DataFrame) -> None:
+    if _is_empty(df):
+        print("No clean data to write.")
+        return
+
+    (df.write.format("delta").mode("append").save(CLEAN_DATA_PATH))
+
+    print(f"Clean layer: data written to {CLEAN_DATA_PATH}.")
