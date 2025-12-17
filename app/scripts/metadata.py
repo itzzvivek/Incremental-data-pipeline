@@ -5,7 +5,7 @@ from datetime import datetime
 BASE_DIR = os.getenv("APP_BASE_DIR", os.getcwd())
 META_PATH = os.path.join(BASE_DIR, "data", "metadata", "last_load.json")
 
-DEFAULT_TS = "1970-01-01T00:00:00Z"
+DEFAULT_TS = "2025-12-16T00:00:00Z"
 
 def load_metadata():
     os.makedirs(os.path.dirname(META_PATH), exist_ok=True)
