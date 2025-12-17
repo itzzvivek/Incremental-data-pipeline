@@ -1,32 +1,22 @@
-import os
-import argparse
-from datetime import datetime
-
-from fetch_incremental import fetch_incremental
-from delta_write import write_delta
+from fetch_raw import fetch_raw
+from fetch_incremental import build_incremental
+from delta_write import write_raw, write_clean
 from metadata import update_metadata
 
 
 def run_once():
-    df = fetch_incremental()
-    if df.rdd.isEmpty:
+    raw_df = fetch_raw()
+    write_raw(raw_df)
+
+    clean_df = build_incremental(raw_df)
+
+    if clean_df.rdd.isEmpty():
         print("No new data to process.")
         return
     
-    write_delta(df)
-    max_ts = df['time_period_start'].max()
-    update_metadata(max_ts)
-    print(f"Appended {len(df)} rows, updated metadata to {max_ts}.")
+    write_clean(clean_df)
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--run-once",
-        action="store_true",
-    )
-    args = parser.parse_args()
+    max_time = clean_df.agg({"event_time": "max"}).collect()[0][0]
+    update_metadata(max_time)
 
-    if args.run_once:
-        run_once()
-    else:
-        run_once()
+    print(f"Pipeline run complete. Updated up to {max_time}.")
