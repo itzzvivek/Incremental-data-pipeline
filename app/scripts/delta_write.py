@@ -1,6 +1,5 @@
 from pyspark.sql import DataFrame
 
-
 RAW_DATA_PATH = "s3a://delta/raw/bitcoin_prices"
 CLEAN_DATA_PATH = "s3a://delta/clean/bitcoin_prices"
 
@@ -10,7 +9,7 @@ def _is_empty(df: DataFrame) -> bool:
 
 def write_raw(df: DataFrame) -> None:
     if _is_empty(df):
-        print("No raw data to write.")
+        print("No raw data to write.")  
         return
 
     (df.write.format("delta").mode("append").save(RAW_DATA_PATH))
