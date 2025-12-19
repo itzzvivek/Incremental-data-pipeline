@@ -1,9 +1,9 @@
 from datetime import datetime, timezone
 from metadata import load_metadata
-from pyspark.sql import SparkSession
+# from pyspark.sql import SparkSession
 
 
-spark = SparkSession.builder.getOrCreate()
+# spark = SparkSession.builder.getOrCreate()
 
 def build_incremental(raw_df):
     last_loaded = load_metadata()
