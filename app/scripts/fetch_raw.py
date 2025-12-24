@@ -1,44 +1,85 @@
+import os
 import requests
-from datetime import datetime, timezone
+from dotenv import load_dotenv
 
-from pyspark.sql.types import StructType, StructField, DoubleType
+from pyspark.sql.types import (
+    StructType,
+    StructField,
+    DoubleType,
+    TimestampType
+)
 from pyspark.sql.functions import col, from_unixtime
 from spark_session import get_spark
+
+# Load env (local runs)
+load_dotenv()
 
 spark = get_spark("FetchRawData")
 
 COINGECKO_URL = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
+COINGECKO_API_KEY = os.getenv("COINGECKO_API_KEY")
+
+if not COINGECKO_API_KEY:
+    raise RuntimeError("COINGECKO_API_KEY not set")
+
+RAW_DATA_PATH = "s3a://delta/raw/bitcoin_prices"
 
 
 def fetch_raw():
-    params = {
-        "vs_currency": "usd",
-        "days": "max"
+    headers = {
+        "x-cg-demo-api-key": COINGECKO_API_KEY
     }
 
-    r = requests.get(COINGECKO_URL, params=params, timeout=30)
-    print(f"Fetching raw data from {r}")
-    r.raise_for_status()
-    
-    data = r.json()
-    prices = data.get("prices", [])
+    params = {
+        "vs_currency": "usd",
+        "days": 30,
+        "interval": "hourly"
+    }
 
+    print(f"Fetching raw data from {COINGECKO_URL}")
+    response = requests.get(
+        COINGECKO_URL,
+        headers=headers,
+        params=params,
+        timeout=30
+    )
+    response.raise_for_status()
+
+    prices = response.json().get("prices", [])
     if not prices:
-        return spark.createDataFrame([], schema=None)   
+        return None
 
-    # prices = [[timestamp_ms, price], ...]
-    rows = [(p[0], float(p[1]))for p in prices]
+    rows = [(p[0], float(p[1])) for p in prices]
 
     schema = StructType([
         StructField("event_time_ms", DoubleType(), False),
-        StructField("price", DoubleType(), False)
+        StructField("price", DoubleType(), False),
     ])
 
-    df = spark.createDataFrame(rows, schema=schema)
+    df = spark.createDataFrame(rows, schema)
 
-    df = df.withColumn(
-        "event_time",
-        from_unixtime(col("event_time_ms") / 1000).cast("TimestampType()")
-    ).drop("event_time_ms")
+    df = (
+        df.withColumn(
+            "event_time",
+            from_unixtime(col("event_time_ms") / 1000)
+            .cast(TimestampType())
+        )
+        .drop("event_time_ms")
+    )
 
     return df
+
+
+def fetch_and_store_raw():
+    df = fetch_raw()
+
+    if df is None or df.rdd.isEmpty():
+        print("⚠️ No raw data fetched")
+        return
+
+    df.write.format("delta").mode("append").save(RAW_DATA_PATH)
+    print(f"✅ Raw data written to {RAW_DATA_PATH}")
+
+
+if __name__ == "__main__":
+    fetch_and_store_raw()
