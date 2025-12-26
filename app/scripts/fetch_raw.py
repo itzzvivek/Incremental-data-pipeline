@@ -6,7 +6,8 @@ from pyspark.sql.types import (
     StructType,
     StructField,
     DoubleType,
-    TimestampType
+    TimestampType,
+    LongType,
 )
 from pyspark.sql.functions import col, from_unixtime
 from spark_session import get_spark
@@ -27,21 +28,21 @@ RAW_DATA_PATH = "s3a://delta/raw/bitcoin_prices"
 
 def fetch_raw():
     headers = {
-        "x-cg-demo-api-key": COINGECKO_API_KEY
+        "x-cg-demo-api-key": COINGECKO_API_KEY,
+        "Accept": "application/json"
     }
 
     params = {
         "vs_currency": "usd",
-        "days": 30,
-        "interval": "hourly"
+        "days": "30",
     }
 
     print(f"Fetching raw data from {COINGECKO_URL}")
-    response = requests.get(
+    response = requests.get(    
         COINGECKO_URL,
-        headers=headers,
+        headers=headers,    
         params=params,
-        timeout=30
+        timeout=90
     )
     response.raise_for_status()
 
@@ -52,7 +53,7 @@ def fetch_raw():
     rows = [(p[0], float(p[1])) for p in prices]
 
     schema = StructType([
-        StructField("event_time_ms", DoubleType(), False),
+        StructField("event_time_ms", LongType(), False),
         StructField("price", DoubleType(), False),
     ])
 
