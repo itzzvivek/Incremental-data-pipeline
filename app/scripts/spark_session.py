@@ -17,8 +17,10 @@ from delta import configure_spark_with_delta_pip
 
 
 def get_spark(app_name: str = "incremental_data"):
-    hadoop_aws_pkg = "org.apache.hadoop:hadoop-aws:3.3.4"
-    aws_sdk_pkg = "com.amazonaws:aws-java-sdk-bundle:1.12.262"
+    # hadoop_aws_pkg = "org.apache.hadoop:hadoop-aws:3.3.4"
+    # aws_sdk_pkg = "com.amazonaws:aws-java-sdk-bundle:1.12.262"
+    hadoop_aws_pkg = "org.apache.hadoop:hadoop-aws:3.4.0"
+    aws_sdk_pkg = "com.amazonaws:aws-java-sdk-bundle:1.12.600"
 
     builder = (
         SparkSession.builder
