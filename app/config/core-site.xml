@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <property>
+        <name>fs.s3a.connection.timeout</name>
+        <value>60000</value>
+    </property>
+    <property>
+        <name>fs.s3a.socket.timeout</name>
+        <value>60000</value>
+    </property>
+    <property>
+        <name>fs.s3a.connection.establish.timeout</name>
+        <value>60000</value>
+    </property>
+    <property>
+        <name>fs.s3a.connection.acquisition.timeout</name>
+        <value>60000</value>
+    </property>
+    <property>
+        <name>fs.s3a.connection.request.timeout</name>
+        <value>60000</value>
+    </property>
+    <property>
+        <name>fs.s3a.connection.idle.time</name>
+        <value>60000</value>
+    </property>
+</configuration>
