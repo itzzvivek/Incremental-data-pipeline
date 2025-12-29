@@ -7,7 +7,7 @@ from spark_session import get_spark
 
 def run_once():
     spark = get_spark("Run Pipeline")
-    raw_df = fetch_raw()
+    raw_df = fetch_raw(spark)
     write_raw(raw_df)
 
     clean_df = build_incremental(raw_df)

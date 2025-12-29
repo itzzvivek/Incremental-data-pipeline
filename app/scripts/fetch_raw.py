@@ -26,7 +26,7 @@ if not COINGECKO_API_KEY:
 RAW_DATA_PATH = "s3a://delta/raw/bitcoin_prices"
 
 
-def fetch_raw():
+def fetch_raw(spark):
     headers = {
         "x-cg-demo-api-key": COINGECKO_API_KEY,
         "Accept": "application/json"
