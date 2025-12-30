@@ -15,7 +15,6 @@ def get_spark(app_name: str = "incremental_data"):
         active_session.stop()
 
     # 2. Define Stable Package Versions
-    # Hadoop 3.3.4 + AWS SDK 1.12.262 is the most stable pairing for local MinIO setups
     hadoop_aws_pkg = "org.apache.hadoop:hadoop-aws:3.3.4"
     aws_sdk_pkg = "com.amazonaws:aws-java-sdk-bundle:1.12.262"
 
@@ -24,12 +23,13 @@ def get_spark(app_name: str = "incremental_data"):
         SparkSession.builder
         .appName(app_name)
         .master("local[*]")
-        # Force the driver to loopback to avoid WSL networking glitches
+       # Force IPv4 and local communication to prevent DNS hangs
+        .config("spark.driver.extraJavaOptions", "-Djava.net.preferIPv4Stack=true")
+        .config("spark.executor.extraJavaOptions", "-Djava.net.preferIPv4Stack=true")
         .config("spark.driver.host", "127.0.0.1")
         .config("spark.driver.bindAddress", "127.0.0.1")
         
         # --- FIX: NumberFormatException "60s" ---
-        # We disable the FileSystem cache to force Spark to re-read our numeric configs
         .config("spark.hadoop.fs.s3a.impl.disable.cache", "true")
         .config("spark.hadoop.fs.s3a.connection.timeout", "60000")
         .config("spark.hadoop.fs.s3a.connection.establish.timeout", "60000")
