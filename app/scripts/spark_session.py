@@ -4,11 +4,6 @@ from pyspark.sql import SparkSession
 from delta import configure_spark_with_delta_pip
 
 def get_spark(app_name: str = "incremental_data"):
-    """
-    Creates a Spark Session with specific overrides to fix the '60s' NumberFormatException
-    and ensures S3A/MinIO compatibility.
-    """
-    
     # 1. Kill any existing active sessions to prevent 'Using an existing Spark session' warnings
     active_session = SparkSession.getActiveSession()
     if active_session:

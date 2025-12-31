@@ -1,6 +1,6 @@
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 BASE_DIR = os.getenv("APP_BASE_DIR", os.getcwd())
 META_PATH = os.path.join(BASE_DIR, "data", "metadata", "last_load.json")
