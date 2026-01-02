@@ -47,14 +47,34 @@ def fetch_raw(spark):
     response.raise_for_status()
 
     prices = response.json().get("prices", [])
+    market_caps = response.json().get("market_caps", [])
+    volumes = response.json().get("total_volumes", [])
+
+
     if not prices:
         return None
 
-    rows = [(p[0], float(p[1])) for p in prices]
+    price_map = {p[0]: float(p[1]) for p in prices}
+    market_cap_map = {m[0]: float(m[1]) for m in market_caps}
+    volume_map = {v[0]: float(v[1]) for v in volumes}
+
+    timestamps = sorted(price_map.keys())
+
+    rows = [
+        (
+            ts,
+            price_map.get(ts),
+            market_cap_map.get(ts),
+            volume_map.get(ts)
+        )
+        for ts in timestamps
+    ]
 
     schema = StructType([
         StructField("event_time_ms", LongType(), False),
         StructField("price", DoubleType(), False),
+        StructField("market_cap", DoubleType(), True),
+        StructField("volume", DoubleType(), True),
     ])
 
     df = spark.createDataFrame(rows, schema)
@@ -75,11 +95,11 @@ def fetch_and_store_raw():
     df = fetch_raw()
 
     if df is None or df.rdd.isEmpty():
-        print("⚠️ No raw data fetched")
+        print("No raw data fetched")
         return
 
     df.write.format("delta").mode("append").save(RAW_DATA_PATH)
-    print(f"✅ Raw data written to {RAW_DATA_PATH}")
+    print(f"Raw data written to {RAW_DATA_PATH}")
 
 
 if __name__ == "__main__":
