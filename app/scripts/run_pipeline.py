@@ -3,6 +3,7 @@ from fetch_incremental import build_incremental
 from delta_write import write_raw, write_clean
 from metadata import update_metadata
 from spark_session import get_spark
+from load_postgres import write_gold
 
 
 def run_once():
@@ -21,6 +22,8 @@ def run_once():
     max_time = clean_df.agg({"event_time": "max"}).collect()[0][0]
     update_metadata(max_time)
 
+    write_gold(clean_df)
+    
     print(f"Pipeline run complete. Updated up to {max_time}.")
 
 if __name__ == "__main__":
