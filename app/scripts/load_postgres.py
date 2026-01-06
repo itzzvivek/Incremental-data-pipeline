@@ -1,12 +1,14 @@
 from pyspark.sql import DataFrame
+from dotenv import load_dotenv
 import os
 
+load_dotenv()   
 
-POSTGRES_URL = os.getenv("POSTGRES_URL", "jdbc:postgresql://localhost:5432/analytics_db")
+POSTGRES_URL = f"{os.getenv('POSTGRES_URL')}/{os.getenv('POSTGRES_DB')}"
 
 POSTGRES_PROPS = {
-    "user": os.getenv("POSTGRES_USER", "root"),
-    "password": os.getenv("POSTGRES_PASSWORD", "root"),
+    "user": os.getenv("POSTGRES_USER"),
+    "password": os.getenv("POSTGRES_PASSWORD"),
     "driver": "org.postgresql.Driver"
 }
 
