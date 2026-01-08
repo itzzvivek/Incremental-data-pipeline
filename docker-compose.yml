@@ -91,7 +91,7 @@ services:
       - pipeline_net
   
   postgres:
-    image: postgres:15
+    image: postgres:18
     container_name: postgres
     environment:
       POSTGRES_USER: root
