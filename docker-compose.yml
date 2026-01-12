@@ -48,7 +48,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: coinapi_app
+    container_name: coingeckoapi_app
     env_file: .env
     environment:
       - SPARK_MASTER=spark://spark-master:7077
@@ -99,11 +99,43 @@ services:
       POSTGRES_DB: analytics_db
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - pipeline_net
 
+  superset:
+    image: apache/superset:latest
+    container_name: superset
+    ports:
+      - "8088:8088"
+    environment:
+      SUPERSET_SECRET_KEY: supersecretkey
+    depends_on:
+      - postgres
+    volumes:
+      - superset_home:/app/superset_home
+    networks:
+      - pipeline_net
+    command: >
+      bash -c "
+      sleep 15 &&
+      superset db upgrade &&
+      superset fab create-admin
+        --username admin
+        --firstname Vivek
+        --lastname Admin
+        --email admin@example.com
+        --password admin || true &&
+      superset init &&
+      superset run -h 0.0.0.0 -p 8088
+      "
 
 volumes:
   minio_data:
   app_data:
+  postgres_data:
+  superset_home:
 
 networks:
   pipeline_net:
