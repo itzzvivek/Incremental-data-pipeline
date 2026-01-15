@@ -91,7 +91,7 @@ services:
       - pipeline_net
   
   postgres:
-    image: postgres:18
+    image: postgres:15
     container_name: postgres
     environment:
       POSTGRES_USER: root
@@ -105,7 +105,9 @@ services:
       - pipeline_net
 
   superset:
-    image: apache/superset:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.superset
     container_name: superset
     ports:
       - "8088:8088"
@@ -119,14 +121,14 @@ services:
       - pipeline_net
     command: >
       bash -c "
-      sleep 15 &&
+      sleep 20 &&
       superset db upgrade &&
       superset fab create-admin
-        --username admin
-        --firstname Vivek
-        --lastname Admin
-        --email admin@example.com
-        --password admin || true &&
+      --username admin
+      --firstname Vivek
+      --lastname Admin
+      --email admin@example.com
+      --password admin || true &&
       superset init &&
       superset run -h 0.0.0.0 -p 8088
       "
