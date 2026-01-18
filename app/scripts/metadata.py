@@ -44,4 +44,4 @@ def update_metadata(dt):
         json.dump(
             {"last_loaded": dt.astimezone(timezone.utc).isoformat()},
             f
-        )
+        )   
